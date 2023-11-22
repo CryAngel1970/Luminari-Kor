@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
  *  File: ban.c                                        Part of LuminariMUD *
  *  Usage: Banning/unbanning/checking sites and player names.              *
  *                                                                         *
@@ -263,15 +263,17 @@ int valid_name(char *newname)
         return (IS_PLAYING(dt));
 
   /* count vowels */
-  for (i = 0; newname[i]; i++)
-  {
-    if (strchr("aeiouyAEIOUY", newname[i]))
-      vowels++;
-  }
+  /* 한글 아이디 입력 받도록 수정 시작 */
+//  for (i = 0; newname[i]; i++)
+//  {
+//    if (strchr("aeiouyAEIOUY", newname[i]))
+//      vowels++;
+//  }
 
   /* return invalid if no vowels */
-  if (!vowels)
-    return (0);
+//  if (!vowels)
+//    return (0);
+  /* 한글 아이디 입력 받도록 수정 완료 */
 
   /* check spaces */
   if (strchr(newname, ' '))

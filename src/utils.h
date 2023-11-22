@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file utils.h                              Part of LuminariMUD
  * Utility macros and prototypes of utility functions.
  *
@@ -366,6 +366,8 @@ int str_cmp(const char *arg1, const char *arg2);
 #ifndef strn_cmp
 int strn_cmp(const char *arg1, const char *arg2, int n);
 #endif
+
+int	wstrn_cmp(const char *arg1, const char *arg2, int n);
 
 size_t strlcat(char *buf, const char *src, size_t bufsz);
 
@@ -2540,6 +2542,26 @@ int char_has_evolution(struct char_data *ch, int evo);
 #define GET_FRIGHTFUL_PRESENCE_TIMER(ch)  ((ch)->char_specials.frightful_presence_timer)
 bool has_reach(struct char_data *ch);
 
+
+/* 한글 처리용 */
+#define ishan(ch) (((ch) & 0x80) != 0)
+#define ishanasc(ch) (isascii(ch) || ishan(ch))
+#define ishanalp(ch) (isalpha(ch) || ishan(ch))
+#define isnhdigit(ch) (!ishan(ch) && isdigit(ch))
+#define isnhspace(ch) (!ishan(ch) && isspace(ch))
+
+int is_hangul(char *str);
+int is_han(char *str);
+int under_han(unsigned char *str);
+char *first_han(unsigned char *str);
+char *check_josa(char *str, int m);
+char *check_josa_p(char *str, int m);
+
+char *ltrim(char *str, const char *seps); /* 왼쪽 공백 제거   */
+char *rtrim(char *str, const char *seps); /* 오른쪽 공백 제거 */
+char *trim(char *str, const char *seps);  /* 양쪽 공백 제거   */
+
+int count_word(char *str); /* 단어의 개수를 반환한다. */
 #endif /* _UTILS_H_ */
 
 /*EOF*/

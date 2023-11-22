@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file utils.c                LuminariMUD
  * Various utility functions used within the core mud code.
  *
@@ -40,6 +40,8 @@
 #include "missions.h"
 #include "psionics.h"
 #include "evolutions.h"
+#include <locale.h>
+#include <wchar.h>
 
 /* kavir's protocol (isspace_ignoretabes() was moved to utils.h */
 
@@ -2336,7 +2338,7 @@ char *CAP(char *txt)
     else
     {
       p += 2; /* Skip the CSI section of the ANSI code */
-      while (*p && !isalpha(*p))
+      while (*p && !ishanalp(*p)) /* 한글 입력 받기 */
         p++; /* Skip until a 'letter' is found */
       if (*p)
         p++; /* Skip the letter */
@@ -2483,6 +2485,45 @@ int strn_cmp(const char *arg1, const char *arg2, int n)
   return (0);
 }
 #endif
+
+wchar_t* char_to_wchar(const char* str) {
+
+    setlocale(LC_ALL, "");
+
+    if(!str)
+		return NULL;
+	
+    size_t len = strlen(str)+1;
+
+    wchar_t* wstr = (wchar_t*)malloc(len * sizeof(wchar_t));
+
+    if (wstr) {
+        mbstowcs(wstr, str, len);
+        return wstr;	
+   } 
+    return NULL;
+}
+
+int wstrn_cmp(const char *arg1, const char *arg2, int n)
+{
+
+  setlocale(LC_ALL, "");	
+  int chk, i;
+
+  wchar_t* harg1 = char_to_wchar(arg1);
+  wchar_t* harg2 = char_to_wchar(arg2);  
+
+  if (harg1 == NULL || harg2 == NULL) {
+    log("SYSERR: strn_cmp() passed a NULL pointer, %p or %p.", (void *)arg1, (void *)arg2);
+    return (0);
+  }
+
+  for (i = 0; (harg1[i] || harg2[i]) && (n > 0); i++, n--)
+    if ((chk = LOWER(arg1[i]) - LOWER(arg2[i])) != 0)
+      return (chk);	/* not equal */
+
+  return (0);
+}
 
 /** New variable argument log() function; logs messages to disk.
  * Works the same as the old for previously written code but is very nice
@@ -8723,6 +8764,61 @@ int get_mv_regen_amount(struct char_data *ch)
   mv += get_apply_type_gear_mod(ch, APPLY_MV_REGEN);
 
   return mv;
+}
+
+/* 왼쪽 공백 제거 함수 */
+char *ltrim(char *str, const char *seps)
+{
+    size_t totrim;
+    if (seps == NULL) {
+        seps = "\t\n\v\f\r ";
+    }
+    totrim = strspn(str, seps);
+    if (totrim > 0) {
+        size_t len = strlen(str);
+        if (totrim == len) {
+            str[0] = '\0';
+        }
+        else {
+            memmove(str, str + totrim, len + 1 - totrim);
+        }
+    }
+    return str;
+}
+
+/* 오른쪽 공백 제거 함수 */
+char *rtrim(char *str, const char *seps)
+{
+    int i;
+    if (seps == NULL) {
+        seps = "\t\n\v\f\r ";
+    }
+    i = strlen(str) - 1;
+    while (i >= 0 && strchr(seps, str[i]) != NULL) {
+        str[i] = '\0';
+        i--;
+    }
+    return str;
+}
+
+/* 양쪽 공백 제거 함수 */
+char *trim(char *str, const char *seps)
+{
+    return ltrim(rtrim(str, seps), seps);
+}
+
+int count_word(char *str) {
+  int count = 0;
+  int i = 0;
+  do {
+     if (str[i] == ' ' || str[i] == '\t' || str[i] == '\0') {
+       if((i > 0) && (str[i-1] != ' ' && str[i-1] != '\t' && str[i-1] != '\0')) {
+         count++;
+       }
+     }
+  } while(str[i++]);
+ 
+  return count;
 }
 
 /* EoF */

@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
  *  File: interpreter.c                                Part of LuminariMUD *
  *  Usage: Parse user commands, search for specials, call ACMD functions.  *
  *                                                                         *
@@ -67,6 +67,7 @@
 #include "char_descs.h"
 #include "evolutions.h"
 #include "deities.h"
+#include "utils.h" /* 한글 함수 사용을 위해 */
 
 /* local (file scope) functions */
 static int perform_dupe_check(struct descriptor_data *d);
@@ -988,16 +989,59 @@ void command_interpreter(struct char_data *ch, char *argument)
   int cmd = 0, length = 0;
   char *line = NULL;
   char arg[MAX_INPUT_LENGTH] = {'\0'};
+  char hanparse[MAX_INPUT_LENGTH] = {'\0'};   /* 한글 어순 */
+  char hancommand[MAX_INPUT_LENGTH] = {'\0'}; /* 한글 명령 */
 
   /* just drop to next line for hitting CR */
   skip_spaces(&argument);
   if (!*argument)
     return;
 
+  /* 입력한 문장을 hanparse로 복사한다. */
+  //sprintf(hanparse, "%s", trim(argument,NULL));
+  sprintf(hanparse, "%s", argument);
+
+  /* 키보드의 숫자 키패드의 번호를 입력시 해당 방향으로 이동하는 명령어로 변경한다. */
+/*
+  if((strlen(hanparse) <= 2) && is_number(hanparse) && count_word(hanparse) < 2)
+    switch(atoi(hanparse)) {
+      case 6:
+        sprintf(hanparse, "동");  break;
+      case 4:
+        sprintf(hanparse, "서");  break;
+      case 2:
+        sprintf(hanparse, "남");  break;
+      case 8:
+        sprintf(hanparse, "북");  break;
+      case 9:
+        sprintf(hanparse, "북동");  break;
+      case 7:
+        sprintf(hanparse, "북서");  break;
+      case 3:
+        sprintf(hanparse, "남동");  break;
+      case 1:
+        sprintf(hanparse, "남서");  break;
+  }
+*/
+  // 한글처리 : 어순변경
+  sprintf(hanparse, "%s", argument);
+  if(strrchr(hanparse, ' '))
+  {
+    sprintf(hancommand, "%s ", strrchr(hanparse, ' '));
+    hanparse[strlen(hanparse) - (strlen(hancommand) - 1)] = '\0';
+    strcat(hancommand, hanparse);
+    argument = hancommand;
+  } else
+  {
+    argument = hanparse;
+  }
+
+  skip_spaces(&argument);
+
   /* special case to handle one-character, non-alphanumeric commands; requested
    * by many people so "'hi" or ";godnet test" is possible. Patch sent by Eric
    * Green and Stefan Wasilewski. */
-  if (!isalpha(*argument))
+  if (!ishanalp(*argument))
   {
     arg[0] = argument[0];
     arg[1] = '\0';
@@ -1689,7 +1733,7 @@ static int _parse_name(char *arg, char *name)
 
   skip_spaces(&arg);
   for (i = 0; (*name = *arg); arg++, i++, name++)
-    if (!isalpha(*arg))
+    if (!ishanalp(*arg))
       return (1);
 
   if (!i)
@@ -2027,7 +2071,7 @@ int enter_player_game(struct descriptor_data *d)
     GET_REAL_RACE(d->character) = DL_RACE_HUMAN;
   if (GET_DEITY(d->character) >= NUM_DEITIES)
     GET_DEITY(d->character) = 0;
-#endif 
+#endif
 
 
   if (GET_REGION(d->character) < REGION_NONE || GET_REGION(d->character) >= NUM_REGIONS)
@@ -2146,12 +2190,35 @@ void nanny(struct descriptor_data *d, char *arg)
     {
       char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
 
-      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
-          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
-      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
-        write_to_output(d, "Invalid account name, please try another.\r\nName: ");
-        return;
+//      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 || !is_han(tmp_name) ||
+//          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
+//          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
+//      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+//        write_to_output(d, "Invalid account name, please try another.\r\nName: ");
+//        return;
+//      }
+
+      if (_parse_name(arg, tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "1.Invalid account name, please try another.\r\nName: ");
+          return;
+      } else if (strlen(tmp_name) < 4) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "2.Invalid account name, please try another.\r\nName: ");
+          return;
+      } else if (!is_han(tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "3.Invalid account name, please try another.\r\nName: ");
+          return;
+      } else if (strlen(tmp_name) > MAX_NAME_LENGTH) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "4.Invalid account name, please try another.\r\nName: ");
+          return;
+      } else if (!valid_name(tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "5.Invalid account name, please try another.\r\nName: ");
+          return;
+      } else if (fill_word(strcpy(buf, tmp_name))) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "6.Invalid account name, please try another.\r\nName: ");
+          return;
+      } else if (reserved_word(buf)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "7.Invalid account name, please try another.\r\nName: ");
+          return;
       }
 
       if ((load_account(tmp_name, d->account)) > -1)
@@ -2174,7 +2241,8 @@ void nanny(struct descriptor_data *d, char *arg)
           return;
         }
         CREATE(d->account->name, char, strlen(tmp_name) + 1);
-        strcpy(d->account->name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+        //strcpy(d->account->name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+        strcpy(d->account->name, tmp_name); /* strcpy: OK (size checked above) */
 
         write_to_output(d, "Did I get that right, %s (Y/N)?", tmp_name);
         STATE(d) = CON_ACCOUNT_NAME_CONFIRM;
@@ -2347,15 +2415,55 @@ void nanny(struct descriptor_data *d, char *arg)
     else
     {
       char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
-      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
-          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
-      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
-        write_to_output(d, "Invalid character name.\r\n");
-        STATE(d) = CON_ACCOUNT_MENU;
-        show_account_menu(d);
-        return;
+//
+//      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 || !is_han(tmp_name) ||
+//          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
+//          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
+//      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+//        write_to_output(d, "Invalid character name.\r\n");
+//        STATE(d) = CON_ACCOUNT_MENU;
+//        show_account_menu(d);
+//        return;
+//      }
+
+      if (_parse_name(arg, tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "1.Invalid character name, please try another.\r\n");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
+      } else if (strlen(tmp_name) < 4) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "2.Invalid character name, please try another.\r\n");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
+      } else if (!is_han(tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "3.Invalid character name, please try another.\r\nN");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
+      } else if (strlen(tmp_name) > MAX_NAME_LENGTH) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "4.Invalid character name, please try another.\r\n");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
+      } else if (!valid_name(tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "5.Invalid character name, please try another.\r\n");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
+      } else if (fill_word(strcpy(buf, tmp_name))) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "6.Invalid character name, please try another.\r\n");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
+      } else if (reserved_word(buf)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "7.Invalid character name, please try another.\r\n");
+      	  STATE(d) = CON_ACCOUNT_MENU;
+      	  show_account_menu(d);
+          return;
       }
+	  
+
       if ((player_i = load_char(tmp_name, d->character)) > -1)
       {
         /* Player found! */
@@ -2413,13 +2521,37 @@ void nanny(struct descriptor_data *d, char *arg)
     {
       char buf[MAX_INPUT_LENGTH] = {'\0'}, tmp_name[MAX_INPUT_LENGTH] = {'\0'};
 
-      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 ||
-          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
-          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
-      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
-        write_to_output(d, "Invalid name, please try another.\r\nName: ");
-        return;
+//      if ((_parse_name(arg, tmp_name)) || strlen(tmp_name) < 2 || !is_han(tmp_name) ||
+//          strlen(tmp_name) > MAX_NAME_LENGTH || !valid_name(tmp_name) ||
+//          fill_word(strcpy(buf, tmp_name)) || reserved_word(buf))
+//      { /* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+//        write_to_output(d, "Invalid name, please try another.\r\nName: ");
+//        return;
+//      }
+
+      if (_parse_name(arg, tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "1.Invalid name, please try another.\r\nName: ");
+          return;
+      } else if (strlen(tmp_name) < 4) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "2.Invalid name, please try another.\r\nName: ");
+          return;
+      } else if (!is_han(tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "3.Invalid name, please try another.\r\nName: ");
+          return;
+      } else if (strlen(tmp_name) > MAX_NAME_LENGTH) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "4.Invalid name, please try another.\r\nName: ");
+          return;
+      } else if (!valid_name(tmp_name)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "5.Invalid name, please try another.\r\nName: ");
+          return;
+      } else if (fill_word(strcpy(buf, tmp_name))) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "6.Invalid name, please try another.\r\nName: ");
+          return;
+      } else if (reserved_word(buf)) {	/* strcpy: OK (mutual MAX_INPUT_LENGTH) */
+          write_to_output(d, "7.Invalid name, please try another.\r\nName: ");
+          return;
       }
+
       if ((player_i = load_char(tmp_name, d->character)) > -1)
       {
         GET_PFILEPOS(d->character) = player_i;
@@ -2454,7 +2586,8 @@ void nanny(struct descriptor_data *d, char *arg)
 
           d->character->desc = d;
           CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
-          strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+          //strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+          strcpy(d->character->player.name, tmp_name); /* strcpy: OK (size checked above) */
           GET_PFILEPOS(d->character) = player_i;
 
           /*
@@ -2485,7 +2618,8 @@ void nanny(struct descriptor_data *d, char *arg)
           return;
         }
         CREATE(d->character->player.name, char, strlen(tmp_name) + 1);
-        strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+//        strcpy(d->character->player.name, CAP(tmp_name)); /* strcpy: OK (size checked above) */
+        strcpy(d->character->player.name, tmp_name); /* strcpy: OK (size checked above) */
 
         /*
           if (d->pProtocol && (d->pProtocol->pVariables[eMSDP_ANSI_COLORS] ||
@@ -2891,27 +3025,27 @@ void nanny(struct descriptor_data *d, char *arg)
 #else
 switch (load_result)
     {
-    case DL_RACE_HUMAN: perform_help(d, "race-human"); break; 
-    case DL_RACE_QUALINESTI_ELF: perform_help(d, "race-qualinesti-elf"); break; 
-    case DL_RACE_SILVANESTI_ELF: perform_help(d, "race-silvanesti-elf"); break; 
-    case DL_RACE_KAGONESTI_ELF: perform_help(d, "race-kagonesti-elf"); break; 
-    case DL_RACE_DARGONESTI_ELF: perform_help(d, "race-dargonesti-elf"); break; 
-    case DL_RACE_MOUNTAIN_DWARF: perform_help(d, "race-mountain-dwarf"); break; 
-    case DL_RACE_HILL_DWARF: perform_help(d, "race-hill-dwarf"); break; 
-    case DL_RACE_GULLY_DWARF: perform_help(d, "race-gully-dwarf"); break; 
-    case DL_RACE_MINOTAUR: perform_help(d, "race-minotaur"); break; 
-    case DL_RACE_KENDER: perform_help(d, "race-kender"); break; 
-    case DL_RACE_GNOME: perform_help(d, "race-gnome"); break; 
-    case DL_RACE_HALF_ELF: perform_help(d, "race-half-elf"); break; 
-    case DL_RACE_BAAZ_DRACONIAN: perform_help(d, "race-baaz-draconian"); break; 
-    case DL_RACE_GOBLIN: perform_help(d, "race-goblin"); break; 
-    case DL_RACE_HOBGOBLIN: perform_help(d, "race-hobgoblin"); break; 
-    case DL_RACE_KAPAK_DRACONIAN: perform_help(d, "race-kapak-draconian"); break; 
-    case DL_RACE_BOZAK_DRACONIAN: perform_help(d, "race-bozak-draconian"); break; 
-    case DL_RACE_SIVAK_DRACONIAN: perform_help(d, "race-sivak-draconian"); break; 
-    case DL_RACE_AURAK_DRACONIAN: perform_help(d, "race-aurak-draconian"); break; 
-    case DL_RACE_IRDA: perform_help(d, "race-irda"); break; 
-    case DL_RACE_OGRE: perform_help(d, "race-ogre"); break; 
+    case DL_RACE_HUMAN: perform_help(d, "race-human"); break;
+    case DL_RACE_QUALINESTI_ELF: perform_help(d, "race-qualinesti-elf"); break;
+    case DL_RACE_SILVANESTI_ELF: perform_help(d, "race-silvanesti-elf"); break;
+    case DL_RACE_KAGONESTI_ELF: perform_help(d, "race-kagonesti-elf"); break;
+    case DL_RACE_DARGONESTI_ELF: perform_help(d, "race-dargonesti-elf"); break;
+    case DL_RACE_MOUNTAIN_DWARF: perform_help(d, "race-mountain-dwarf"); break;
+    case DL_RACE_HILL_DWARF: perform_help(d, "race-hill-dwarf"); break;
+    case DL_RACE_GULLY_DWARF: perform_help(d, "race-gully-dwarf"); break;
+    case DL_RACE_MINOTAUR: perform_help(d, "race-minotaur"); break;
+    case DL_RACE_KENDER: perform_help(d, "race-kender"); break;
+    case DL_RACE_GNOME: perform_help(d, "race-gnome"); break;
+    case DL_RACE_HALF_ELF: perform_help(d, "race-half-elf"); break;
+    case DL_RACE_BAAZ_DRACONIAN: perform_help(d, "race-baaz-draconian"); break;
+    case DL_RACE_GOBLIN: perform_help(d, "race-goblin"); break;
+    case DL_RACE_HOBGOBLIN: perform_help(d, "race-hobgoblin"); break;
+    case DL_RACE_KAPAK_DRACONIAN: perform_help(d, "race-kapak-draconian"); break;
+    case DL_RACE_BOZAK_DRACONIAN: perform_help(d, "race-bozak-draconian"); break;
+    case DL_RACE_SIVAK_DRACONIAN: perform_help(d, "race-sivak-draconian"); break;
+    case DL_RACE_AURAK_DRACONIAN: perform_help(d, "race-aurak-draconian"); break;
+    case DL_RACE_IRDA: perform_help(d, "race-irda"); break;
+    case DL_RACE_OGRE: perform_help(d, "race-ogre"); break;
     case RACE_LICH: perform_help(d, "race-lich"); break;
     case RACE_VAMPIRE: perform_help(d, "race-vampire"); break;
 

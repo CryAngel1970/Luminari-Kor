@@ -1,4 +1,4 @@
-/**************************************************************************
+﻿/**************************************************************************
  *  File: comm.c                                       Part of LuminariMUD *
  *  Usage: Communication, socket handling, main(), central game loop.      *
  *                                                                         *
@@ -2696,15 +2696,20 @@ static int process_input(struct descriptor_data *t)
             space_left++;
         }
       }
-      else if (isascii(*ptr) && isprint(*ptr))
+      else if ((isascii(*ptr) && isprint(*ptr)) || ishan(*ptr)) /* 한글인가 조건 추가 */
       {
         if ((*(write_point++) = *ptr) == '$')
         {                         /* copy one character */
           *(write_point++) = '$'; /* if it's a $, double it */
           space_left -= 2;
         }
-        else
-          space_left--;
+        /* 한글이면 1바이트 더 읽기 위해 포인트 이동 */
+		else if(((unsigned char) *ptr) == 0xff)
+		{
+          ptr++;
+          write_point--;
+  		}
+        space_left--;
       }
     }
 

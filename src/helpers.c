@@ -1,5 +1,6 @@
-/* Utilities that don't depend on the rest of the codebase */
+﻿/* Utilities that don't depend on the rest of the codebase */
 #include "helpers.h"
+#include "utils.h"
 
 #include <ctype.h>
 #include <string.h>
@@ -7,13 +8,13 @@
 /* Function to skip over the leading spaces of a string. */
 void skip_spaces(char **string)
 {
-  for (; **string && **string != '\t' && isspace(**string); (*string)++)
+  for (; **string && **string != '\t' && isnhspace(**string); (*string)++) /* 한글 입력 받기 */
     ;
 }
 
 void skip_spaces_c(const char **string)
 {
-  for (; **string && **string != '\t' && isspace(**string); (*string)++)
+  for (; **string && **string != '\t' && isnhspace(**string); (*string)++) /* 한글 입력 받기 */
     ;
 }
 
@@ -60,7 +61,7 @@ char *any_one_arg(char *argument, char *first_arg)
 {
   skip_spaces(&argument);
 
-  while (*argument && !isspace(*argument))
+  while (*argument && !isnhspace(*argument)) /* 한글 입력 받기 */
   {
     *(first_arg++) = LOWER(*argument);
     argument++;
@@ -76,8 +77,8 @@ const char *any_one_arg_c(const char *argument, char *first_arg, size_t n)
   const char *arg_last = first_arg + n - 1;
 
   skip_spaces_c(&argument);
-  
-  while (*argument && !isspace(*argument))
+
+  while (*argument && !isnhspace(*argument)) /* 한글 입력 받기 */
   {
     if (first_arg < arg_last)
     {
@@ -162,7 +163,7 @@ char *one_argument_u(char *argument, char *first_arg)
     skip_spaces(&argument);
 
     first_arg = begin;
-    while (*argument && !isspace(*argument))
+    while (*argument && !isnhspace(*argument)) /* 한글 입력 받기 */
     {
       *(first_arg++) = LOWER(*argument);
       argument++;
@@ -192,7 +193,7 @@ const char *one_argument(const char *argument, char *first_arg, size_t n)
     skip_spaces_c(&argument);
 
     first_arg = begin;
-    while (*argument && !isspace(*argument))
+    while (*argument && !isnhspace(*argument)) /* 한글 입력 받기 */
     {
       if (first_arg < arg_last)
       {
