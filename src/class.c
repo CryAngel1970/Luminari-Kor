@@ -2336,6 +2336,7 @@ int level_feats[][LEVEL_FEATS] = {
 /* function that gives chars starting gear */
 void newbieEquipment(struct char_data *ch)
 {
+	return; // 착용한 장비 아이템(obj)이 설정되어 있지 않기 때문에 클래스에 맞는 장비를 착용하는 코드가 실행되지 않토록 함
   int objNums[] = {
       NOOB_BP, /* HAS to be first */
       NOOB_BOW,
@@ -5856,7 +5857,7 @@ void load_class_list(void)
   spell_assignment(CLASS_BLACKGUARD, SPELL_SUMMON_CREATURE_8, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_UNHOLY_SWORD, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_STONESKIN, 15);
-  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);  
+  spell_assignment(CLASS_BLACKGUARD, SPELL_PLANAR_SOUL, 15);
   spell_assignment(CLASS_BLACKGUARD, SPELL_BANISHING_BLADE, 15);
 
   /* class prerequisites */
@@ -7836,7 +7837,7 @@ void load_class_list(void)
   spell_assignment(CLASS_SUMMONER, SPELL_TRUE_SEEING, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WALL_OF_IRON, 13);
   // spell_assignment(CLASS_SUMMONER, SPELL_WREATH_OF_BLADES, 13);
-  
+
   // spell circle 6
   spell_assignment(CLASS_SUMMONER, SPELL_MASS_CHARM_MONSTER, 16);
   spell_assignment(CLASS_SUMMONER, SPELL_DIMENSIONAL_LOCK, 16);
@@ -7883,7 +7884,7 @@ void load_class_list(void)
   feat_assignment(CLASS_SUMMONER, FEAT_GREAT_CHARISMA, Y, NOASSIGN_FEAT, Y);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_AUGMENT_SUMMONING, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_SUMMONER, FEAT_EPIC_SPELL_FOCUS, Y, NOASSIGN_FEAT, N);
-  
+
 
   /* no spell assignment */
   /* class prereqs */
@@ -8048,7 +8049,7 @@ void load_class_list(void)
   /* epic class */
   feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_MASTER, Y, NOASSIGN_FEAT, N);
   feat_assignment(CLASS_WARLOCK, FEAT_EPIC_ELDRITCH_BLAST, Y, NOASSIGN_FEAT, Y);
-  
+
   // feat_assignment(CLASS_WARLOCK, FEAT_INVOCATIONS, Y, 1, Y);
   /*              class num      spell                   level acquired */
   spell_assignment(CLASS_WARLOCK, WARLOCK_ELDRITCH_SPEAR, 1);
