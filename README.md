@@ -1,4 +1,3 @@
-```markdown
 # LuminariMUD
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
@@ -429,8 +428,6 @@ LuminariMUD를 위해 개발된 커스텀 코드는 **퍼블릭 도메인(Public
 - **최종 업데이트**: 2026년 1월
 
 > 버전 정의 위치: `src/constants.c` (정식), `src/structs.h`, `configure.ac`, `CMakeLists.txt`
-
----
 
 **기억하세요**: *작업 그 자체가 보상입니다. 커뮤니티를 위해 의미 있는 것을 만드는 데 집중하십시오.*
 
