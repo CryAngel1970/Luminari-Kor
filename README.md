@@ -432,5 +432,3 @@ LuminariMUD를 위해 개발된 커스텀 코드는 **퍼블릭 도메인(Public
 **기억하세요**: *작업 그 자체가 보상입니다. 커뮤니티를 위해 의미 있는 것을 만드는 데 집중하십시오.*
 
 더 많은 정보를 원하시면 [기술 문서](docs/TECHNICAL_DOCUMENTATION_MASTER_INDEX.md)를 방문하거나 [Discord 커뮤니티](https://discord.gg/Me3Tuu4)에 참여하세요.
-
-```
