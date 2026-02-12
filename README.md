@@ -2,6 +2,7 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![C](https://img.shields.io/badge/language-C-blue.svg)](https://en.wikipedia.org/wiki/C_(programming_language))
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20Unix-lightgrey.svg)](https://github.com/LuminariMUD/Luminari-Source)
+
 텍스트 기반 다중 사용자 온라인 롤플레잉 게임 (MUD) 서버로, Pathfinder/D&D 3.5 메카니즘을 구현하며, 견고한 tbaMUD/CircleMUD 기반에 광범위한 사용자 정의 향상 기능을 추가하여 구축되었습니다.
 ## 목차
 - [빠른 시작](#quick-start) - [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md)도 참조하세요
